@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Win Go - Elite Trading 3D</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.3);
+            --shadow-3d: 0 20px 40px rgba(0, 0, 0, 0.1), inset 0 2px 5px rgba(255, 255, 255, 0.5);
+        }
+
+        body { 
+            background: linear-gradient(135deg, #f0f4f8 0%, #d7e2eb 100%); 
+            font-family: 'Segoe UI', Roboto, sans-serif; 
+            overflow-x: hidden; 
+            min-height: 100vh;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 30px;
+            box-shadow: var(--shadow-3d);
+        }
+
+        .btn-3d {
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 8px 0 #1e40af, 0 15px 20px rgba(0,0,0,0.1);
+            position: relative;
+            top: 0;
+        }
+        .btn-3d:active {
+            top: 4px;
+            box-shadow: 0 4px 0 #1e40af;
+            transform: scale(0.98);
+        }
+
+        .btn-green-3d { box-shadow: 0 8px 0 #065f46; background: linear-gradient(180deg, #10b981, #059669); }
+        .btn-red-3d { box-shadow: 0 8px 0 #991b1b; background: linear-gradient(180deg, #ef4444, #dc2626); }
+        .btn-violet-3d { box-shadow: 0 8px 0 #5b21b6; background: linear-gradient(180deg, #8b5cf6, #7c3aed); }
+
+        .premium-card {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            border-radius: 35px;
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .page { display: none; padding-bottom: 90px; }
+        .page.active { display: block; animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .nav-btn { color: #94a3b8; transition: all 0.3s; }
+        .nav-btn.active { color: #2563eb; transform: translateY(-5px); }
+
+        .market-tab { border-radius: 15px; transition: all 0.3s; font-weight: 900; }
+        .market-tab.active { background: #2563eb; color: white; box-shadow: 0 10px 15px rgba(37,99,235,0.3); }
+
+        .auth-input {
+            width: 100%;
+            padding: 15px;
+            border-radius: 15px;
+            border: 2px solid #e2e8f0;
+            background: rgba(255,255,255,0.8);
+            margin-bottom: 15px;
+            outline: none;
+            transition: 0.3s;
+            font-weight: bold;
+        }
+        .auth-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
+        
+        #auth-section, #main-app { transition: opacity 0.5s; }
+        .hidden { display: none !important; }
+        
+        /* Account Section Styles */
+        .vip-badge { background: linear-gradient(45deg, #FFD700, #FFA500); -webkit-background-clip: text; color: transparent; }
+        .menu-item { transition: all 0.2s; }
+        .menu-item:active { transform: scale(0.98); background-color: #f1f5f9; }
+    </style>
+</head>
+<body class="max-w-md mx-auto shadow-2xl bg-slate-100 min-h-screen relative">
+
+    <!-- AUTHENTICATION PAGE -->
+    <div id="auth-section" class="min-h-screen flex flex-col justify-center p-6 relative overflow-hidden">
+        <div class="absolute top-[-50px] right-[-50px] w-40 h-40 bg-blue-500 rounded-full blur-3xl opacity-20"></div>
+        <div class="absolute bottom-[-50px] left-[-50px] w-40 h-40 bg-purple-500 rounded-full blur-3xl opacity-20"></div>
+
+        <div class="glass-card p-8 z-10">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-blue-600 rounded-2xl mx-auto mb-4 flex items-center justify-center text-2xl text-white shadow-lg">
+                    <i class="fas fa-cubes"></i>
+                </div>
+                <h1 class="text-3xl font-black text-slate-800 italic uppercase">Elite <span class="text-blue-600">Trading</span></h1>
+                <p class="text-xs text-slate-400 font-bold tracking-widest uppercase mt-2">Win Go Prediction Platform</p>
+            </div>
+
+            <!-- Login Form -->
+            <div id="login-form">
+                <p class="text-xl font-black text-slate-700 mb-6">Login</p>
+                <input type="number" id="login-mobile" class="auth-input" placeholder="Mobile Number (017...)" inputmode="numeric">
+                <input type="password" id="login-pass" class="auth-input" placeholder="Password">
+                <button id="btnLogin" class="w-full btn-3d bg-blue-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest mb-4">Log In</button>
+                <p class="text-center text-xs text-slate-500 font-bold">Don't have an account? <span onclick="toggleAuth('signup')" class="text-blue-600 cursor-pointer underline">Register Now</span></p>
+            </div>
+
+            <!-- Signup Form -->
+            <div id="signup-form" class="hidden">
+                <p class="text-xl font-black text-slate-700 mb-6">Create Account</p>
+                <input type="number" id="reg-mobile" class="auth-input" placeholder="Mobile Number (017...)" inputmode="numeric">
+                <input type="password" id="reg-pass" class="auth-input" placeholder="Set Password (6+ chars)">
+                <input type="text" id="reg-ref" class="auth-input" placeholder="Referral Code (Optional)">
+                <button id="btnSignup" class="w-full btn-3d bg-slate-800 text-white py-4 rounded-2xl font-black uppercase tracking-widest mb-4" style="box-shadow: 0 8px 0 #0f172a;">Sign Up</button>
+                <p class="text-center text-xs text-slate-500 font-bold">Already have an account? <span onclick="toggleAuth('login')" class="text-blue-600 cursor-pointer underline">Login Here</span></p>
+            </div>
+            
+            <p id="auth-msg" class="text-center text-xs font-bold text-red-500 mt-4 h-4"></p>
+        </div>
+    </div>
+
+    <!-- MAIN APPLICATION -->
+    <div id="main-app" class="hidden relative h-screen overflow-y-auto">
+        
+        <!-- Result Overlay -->
+        <div id="resultOverlay" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[1000] hidden items-center justify-center p-6">
+            <div id="resultBox" class="glass-card p-10 text-center w-full max-w-sm border-t-8 border-blue-500">
+                <div id="resIcon" class="text-7xl mb-4 drop-shadow-lg">🏆</div>
+                <h1 id="resStatus" class="text-5xl font-black italic mb-2">WIN</h1>
+                <p id="resAmount" class="text-gray-500 font-bold mb-8 text-xl">You won ৳0.00</p>
+                <button onclick="closeResult()" class="w-full btn-3d bg-blue-600 text-white py-4 rounded-2xl font-black text-lg">COLLECT</button>
+            </div>
+        </div>
+
+        <!-- 1. GAME PAGE -->
+        <div id="page-game" class="page active">
+            <div class="p-6">
+                <div class="premium-card text-center">
+                    <p class="text-[10px] uppercase tracking-[0.3em] font-black opacity-60 mb-2">Available Balance</p>
+                    <div class="flex items-center justify-center gap-2">
+                        <span class="text-3xl font-bold text-blue-400">৳</span>
+                        <h1 class="text-5xl font-black tracking-tighter balance-text">0.00</h1>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex glass-card mx-4 p-2 gap-2">
+                <button onclick="switchMarket('30s')" id="tab-30s" class="market-tab active flex-1 py-3 text-xs uppercase">30s</button>
+                <button onclick="switchMarket('1m')" id="tab-1m" class="market-tab flex-1 py-3 text-xs uppercase">1m</button>
+                <button onclick="switchMarket('3m')" id="tab-3m" class="market-tab flex-1 py-3 text-xs uppercase">3m</button>
+            </div>
+            
+            <div class="mx-4 mt-4 p-6 glass-card flex justify-between items-center border-l-8 border-blue-500">
+                <div><p class="text-[10px] text-slate-400 font-black uppercase mb-1">Period ID</p><h2 id="period-num" class="text-xl font-bold text-slate-800 font-mono tracking-tighter">Wait...</h2></div>
+                <div class="text-right"><p class="text-[10px] text-slate-400 font-black uppercase mb-1">Timer</p><h2 id="countdown" class="text-4xl font-black text-blue-600 italic">00:00</h2></div>
+            </div>
+
+            <div id="betBoard" class="m-4 p-6 glass-card">
+                <div class="flex gap-3 mb-8">
+                    <button onclick="openBet('Green')" class="btn-3d btn-green-3d flex-1 py-4 rounded-2xl text-white font-black text-xs uppercase">Green</button>
+                    <button onclick="openBet('Violet')" class="btn-3d btn-violet-3d flex-1 py-4 rounded-2xl text-white font-black text-xs uppercase">Violet</button>
+                    <button onclick="openBet('Red')" class="btn-3d btn-red-3d flex-1 py-4 rounded-2xl text-white font-black text-xs uppercase">Red</button>
+                </div>
+                
+                <div class="grid grid-cols-5 gap-3 mb-8">
+                    <script>
+                        for(let i=0; i<=9; i++) {
+                            document.write(`<button onclick="openBet('${i}')" class="bg-white shadow-md h-12 w-12 mx-auto rounded-xl flex items-center justify-center text-lg font-black text-slate-600 active:scale-90 transition-all border border-slate-100">${i}</button>`);
+                        }
+                    </script>
+                </div>
+
+                <div class="flex gap-4">
+                    <button onclick="openBet('Big')" class="btn-3d bg-slate-800 text-white flex-1 py-4 rounded-2xl font-black uppercase text-xs" style="box-shadow: 0 8px 0 #000;">Big</button>
+                    <button onclick="openBet('Small')" class="btn-3d bg-blue-500 text-white flex-1 py-4 rounded-2xl font-black uppercase text-xs">Small</button>
+                </div>
+            </div>
+
+            <div class="mx-4 mb-20 glass-card overflow-hidden">
+                <div class="bg-slate-800 text-white p-3 text-center text-[10px] font-black uppercase tracking-[0.2em]">Game History</div>
+                <table class="w-full text-center text-[11px]"><tbody id="history-rows" class="divide-y divide-slate-100"></tbody></table>
+            </div>
+        </div>
+
+        <!-- 2. REFER PAGE -->
+        <div id="page-refer" class="page p-6">
+            <h2 class="text-3xl font-black text-slate-800 mb-6 italic uppercase">Refer <span class="text-blue-600">Earn</span></h2>
+            <div class="glass-card p-6 mb-6 bg-gradient-to-br from-blue-600 to-indigo-800 text-white">
+                <p class="text-[10px] font-black uppercase opacity-80">Referral Reward</p>
+                <h3 class="text-3xl font-black italic">Get <span class="text-yellow-400">৳100</span></h3>
+            </div>
+            <div class="glass-card p-8 text-center">
+                <p class="text-xs font-bold text-slate-400 uppercase mb-4">Invitation Code</p>
+                <div class="bg-slate-100 p-4 rounded-2xl mb-6 border-2 border-dashed border-slate-300">
+                    <h3 class="text-3xl font-black text-blue-600 tracking-widest" id="my-invite-code">LOADING</h3>
+                </div>
+                <button onclick="alert('Copied!')" class="w-full btn-3d bg-slate-900 text-white py-5 rounded-2xl font-black">COPY LINK</button>
+            </div>
+        </div>
+
+        <!-- 3. WALLET PAGE -->
+        <div id="page-wallet" class="page p-6">
+            <h2 class="text-3xl font-black text-slate-800 mb-8 italic uppercase">My <span class="text-blue-600">Wallet</span></h2>
+            
+            <div class="premium-card mb-8">
+                <div class="flex justify-between items-start mb-10">
+                    <div>
+                        <p class="text-[10px] uppercase font-black opacity-50 tracking-[0.2em] mb-1">Total Balance</p>
+                        <div class="flex items-center gap-2">
+                            <span class="text-2xl font-bold text-blue-400">৳</span>
+                            <h1 class="text-4xl font-black balance-text tracking-tighter">0.00</h1>
+                        </div>
+                    </div>
+                    <div class="bg-blue-500/20 p-3 rounded-2xl">
+                        <i class="fas fa-wallet text-blue-400 text-xl"></i>
+                    </div>
+                </div>
+                <div class="flex justify-between items-end">
+                    <div>
+                        <p class="text-[8px] uppercase font-bold opacity-40 mb-1">Account Holder</p>
+                        <p class="text-xs font-black tracking-widest" id="wallet-uid">UID: ...</p>
+                    </div>
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/1280px-Mastercard-logo.svg.png" class="h-6">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-8">
+                <button onclick="showWalletModal('Deposit')" class="glass-card p-6 flex flex-col items-center gap-3 border-b-4 border-blue-500">
+                    <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-xl shadow-inner"><i class="fas fa-arrow-down"></i></div>
+                    <span class="font-black text-[10px] uppercase tracking-widest text-slate-600">Deposit</span>
+                </button>
+                <button onclick="showWalletModal('Withdraw')" class="glass-card p-6 flex flex-col items-center gap-3 border-b-4 border-rose-500">
+                    <div class="w-12 h-12 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center text-xl shadow-inner"><i class="fas fa-arrow-up"></i></div>
+                    <span class="font-black text-[10px] uppercase tracking-widest text-slate-600">Withdraw</span>
+                </button>
+            </div>
+
+            <div class="glass-card p-6 overflow-hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xs font-black uppercase text-slate-400">Recent Transactions</h3>
+                    <i class="fas fa-history text-slate-300"></i>
+                </div>
+                <div class="space-y-4" id="transaction-list">
+                    <p class="text-center text-xs text-slate-400">No transactions yet</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. ACCOUNT PAGE -->
+        <div id="page-account" class="page bg-gray-50">
+            <!-- Profile Header -->
+            <div class="relative bg-gradient-to-br from-[#1e40af] to-[#0f172a] pb-24 pt-12 px-6 rounded-b-[45px] shadow-2xl">
+                <div class="absolute top-6 right-6 text-white/50 text-xl cursor-pointer hover:text-white transition">
+                    <i class="fas fa-cog"></i>
+                </div>
+                
+                <div class="flex items-center gap-6">
+                    <div class="relative">
+                        <div class="w-20 h-20 rounded-full bg-white/10 backdrop-blur-md border-2 border-white/20 flex items-center justify-center text-4xl text-white shadow-lg overflow-hidden">
+                            <i class="fas fa-user-astronaut"></i>
+                        </div>
+                        <div class="absolute bottom-0 right-0 bg-green-500 w-5 h-5 rounded-full border-2 border-[#1e40af]"></div>
+                    </div>
+                    <div class="flex-1">
+                        <h2 class="text-2xl font-black text-white italic tracking-wide">Elite Trader</h2>
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="bg-white/20 px-2 py-0.5 rounded text-[10px] font-bold text-white tracking-widest" id="profile-uid">UID: Loading...</span>
+                            <span class="bg-yellow-500/20 px-2 py-0.5 rounded text-[10px] font-black text-yellow-400 border border-yellow-500/30">VIP 4</span>
+                        </div>
+                        <!-- Simple Progress -->
+                        <div class="w-full bg-black/30 h-1.5 rounded-full overflow-hidden">
+                            <div class="bg-gradient-to-r from-yellow-400 to-yellow-600 w-[65%] h-full rounded-full"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Floating Card -->
+            <div class="relative -mt-16 mx-5 mb-8">
+                <div class="glass-card bg-white p-5 flex justify-between items-center shadow-lg shadow-blue-900/10">
+                    <div class="text-center flex-1 border-r border-slate-100">
+                        <p class="text-xs font-bold text-slate-400 mb-1"><i class="fas fa-trophy text-yellow-500 mr-1"></i>Wins</p>
+                        <p class="text-xl font-black text-slate-800">0</p>
+                    </div>
+                    <div class="text-center flex-1 border-r border-slate-100">
+                        <p class="text-xs font-bold text-slate-400 mb-1"><i class="fas fa-chart-pie text-blue-500 mr-1"></i>Rate</p>
+                        <p class="text-xl font-black text-slate-800">0%</p>
+                    </div>
+                    <div class="text-center flex-1">
+                        <p class="text-xs font-bold text-slate-400 mb-1"><i class="fas fa-gamepad text-purple-500 mr-1"></i>Bets</p>
+                        <p class="text-xl font-black text-slate-800">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Menu Groups -->
+            <div class="px-5 space-y-6 pb-24">
+                
+                <!-- Group 1: Welfare -->
+                <div>
+                    <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Welfare Center</h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div onclick="alert('Gift Card Coming Soon')" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-3 active:scale-95 transition-transform cursor-pointer">
+                            <div class="w-10 h-10 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center text-lg"><i class="fas fa-gift"></i></div>
+                            <div>
+                                <h4 class="text-xs font-black text-slate-700">Gifts</h4>
+                                <p class="text-[9px] text-slate-400 font-bold">Rewards</p>
+                            </div>
+                        </div>
+                        <div onclick="alert('Mission List')" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-3 active:scale-95 transition-transform cursor-pointer">
+                            <div class="w-10 h-10 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center text-lg"><i class="fas fa-fire"></i></div>
+                            <div>
+                                <h4 class="text-xs font-black text-slate-700">Missions</h4>
+                                <p class="text-[9px] text-slate-400 font-bold">Daily Tasks</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Group 2: Services -->
+                <div>
+                    <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">My Services</h3>
+                    <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                        
+                        <!-- History -->
+                        <div onclick="alert('History Loading...')" class="menu-item p-4 flex items-center justify-between border-b border-slate-50 cursor-pointer">
+                            <div class="flex items-center gap-4">
+                                <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center"><i class="fas fa-list-alt"></i></div>
+                                <div>
+                                    <h4 class="text-sm font-bold text-slate-700">Bet History</h4>
+                                    <p class="text-[10px] text-slate-400 font-semibold">Check your gaming records</p>
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-right text-slate-300 text-xs"></i>
+                        </div>
+
+                        <!-- Transactions -->
+                        <div onclick="alert('Transaction...')" class="menu-item p-4 flex items-center justify-between cursor-pointer">
+                            <div class="flex items-center gap-4">
+                                <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center"><i class="fas fa-file-invoice-dollar"></i></div>
+                                <div>
+                                    <h4 class="text-sm font-bold text-slate-700">Transactions</h4>
+                                    <p class="text-[10px] text-slate-400 font-semibold">Deposits & Withdrawals</p>
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-right text-slate-300 text-xs"></i>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Logout -->
+                <button onclick="logoutApp()" class="w-full mt-4 py-4 rounded-2xl bg-slate-200 text-slate-500 font-black text-xs uppercase tracking-widest hover:bg-rose-50 hover:text-rose-500 transition-colors">
+                    <i class="fas fa-power-off mr-2"></i> Log Out
+                </button>
+                
+                <div class="text-center pt-2">
+                    <p class="text-[9px] text-slate-300 font-black uppercase tracking-[0.3em]">Secure Build v3.5</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- NAVIGATION -->
+        <nav class="fixed bottom-4 left-4 right-4 max-w-[400px] mx-auto glass-card flex justify-around py-4 px-2 z-[100]">
+            <button onclick="navigateTo('game')" class="nav-btn active flex flex-col items-center gap-1" id="nav-game"><i class="fas fa-gamepad text-xl"></i><span class="text-[8px] font-black uppercase">Play</span></button>
+            <button onclick="navigateTo('refer')" class="nav-btn flex flex-col items-center gap-1" id="nav-refer"><i class="fas fa-share-alt text-xl"></i><span class="text-[8px] font-black uppercase">Invite</span></button>
+            <button onclick="navigateTo('wallet')" class="nav-btn flex flex-col items-center gap-1" id="nav-wallet"><i class="fas fa-wallet text-xl"></i><span class="text-[8px] font-black uppercase">Wallet</span></button>
+            <button onclick="navigateTo('account')" class="nav-btn flex flex-col items-center gap-1" id="nav-account"><i class="fas fa-user text-xl"></i><span class="text-[8px] font-black uppercase">Me</span></button>
+        </nav>
+
+        <!-- BET MODAL -->
+        <div id="betModal" class="fixed inset-0 bg-black/60 z-[200] hidden flex items-end justify-center backdrop-blur-sm">
+            <div class="bg-white w-full max-w-md p-8 rounded-t-[40px] shadow-2xl">
+                <div class="w-12 h-1.5 bg-slate-200 mx-auto rounded-full mb-8"></div>
+                <div class="flex justify-between items-center mb-8">
+                    <h2 id="target" class="text-3xl font-black uppercase italic tracking-tighter text-slate-800">Select</h2>
+                    <div class="bg-blue-100 px-4 py-2 rounded-xl text-blue-600 font-black">৳<span class="balance-text">0.00</span></div>
+                </div>
+                <div class="grid grid-cols-4 gap-2 mb-8">
+                    <button onclick="setMoney(10)" class="bg-slate-50 py-3 rounded-xl font-black text-slate-600 active:bg-blue-500 active:text-white transition-all">10</button>
+                    <button onclick="setMoney(100)" class="bg-slate-50 py-3 rounded-xl font-black text-slate-600 active:bg-blue-500 active:text-white">100</button>
+                    <button onclick="setMoney(500)" class="bg-slate-50 py-3 rounded-xl font-black text-slate-600 active:bg-blue-500 active:text-white">500</button>
+                    <button onclick="setMoney(1000)" class="bg-slate-50 py-3 rounded-xl font-black text-slate-600 active:bg-blue-500 active:text-white">1k</button>
+                </div>
+                <input type="number" id="bet-amt" class="w-full bg-slate-50 border-2 border-slate-100 p-6 rounded-2xl text-center text-4xl font-black text-slate-800 outline-none" value="10">
+                <div class="flex gap-4 mt-8">
+                    <button onclick="closeBet()" class="flex-1 py-4 font-black text-slate-400 uppercase">Cancel</button>
+                    <button onclick="confirmBet()" class="flex-[2] btn-3d bg-blue-600 text-white py-4 rounded-2xl font-black uppercase">Place Bet</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- WALLET MODAL -->
+        <div id="walletModal" class="fixed inset-0 bg-black/80 z-[200] hidden flex items-center justify-center p-4 backdrop-blur-md">
+            <div class="bg-white w-full rounded-[40px] p-8 max-h-[90vh] overflow-y-auto shadow-2xl">
+                <div class="flex justify-between items-center mb-8">
+                    <h2 id="walletModalTitle" class="text-2xl font-black uppercase text-slate-800">Deposit</h2>
+                    <button onclick="closeWalletModal()" class="text-slate-300 text-2xl"><i class="fas fa-times-circle"></i></button>
+                </div>
+                
+                <div class="flex gap-4 mb-8">
+                    <div onclick="selectMethod('bKash')" id="method-bKash" class="flex-1 border-2 p-4 rounded-2xl text-center cursor-pointer transition-all grayscale hover:grayscale-0">
+                        <img src="https://logodownload.org/wp-content/uploads/2021/02/bkash-logo.png" class="h-6 mx-auto mb-2 object-contain">
+                        <span class="text-[9px] font-black uppercase">bKash</span>
+                    </div>
+                    <div onclick="selectMethod('Nagad')" id="method-Nagad" class="flex-1 border-2 p-4 rounded-2xl text-center cursor-pointer transition-all grayscale hover:grayscale-0">
+                        <img src="https://freepnglogo.com/images/all_img/1679248742Nagad-Logo.png" class="h-6 mx-auto mb-2 object-contain">
+                        <span class="text-[9px] font-black uppercase">Nagad</span>
+                    </div>
+                </div>
+
+                <div id="deposit-ui" class="hidden glass-card p-6 mb-8 bg-blue-50">
+                    <p class="text-[9px] text-blue-600 font-black mb-2 uppercase text-center">Agent Number</p>
+                    <div class="flex justify-between items-center bg-white p-4 rounded-xl border">
+                        <span id="admin-num" class="font-black text-slate-700 text-lg">01735806435</span>
+                        <button onclick="copyNum()" class="text-blue-600 font-black text-xs uppercase">Copy</button>
+                    </div>
+                    <input type="text" id="wallet-tid" class="w-full mt-4 bg-white border p-4 rounded-xl font-black text-center outline-none" placeholder="Transaction ID">
+                </div>
+
+                <div id="withdraw-ui" class="hidden space-y-4 mb-8">
+                    <input type="number" id="withdraw-number" class="w-full bg-slate-50 p-4 rounded-xl font-bold border" placeholder="Account Number">
+                </div>
+
+                <input type="number" id="wallet-amt" class="w-full border-b-4 border-blue-500 p-4 text-center text-4xl font-black outline-none mb-8" placeholder="৳ 0.00">
+                <button onclick="handleWalletAction()" class="w-full btn-3d bg-blue-600 text-white py-5 rounded-2xl font-black uppercase">Confirm</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- FIREBASE AND GAME LOGIC -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getDatabase, ref, set, onValue, update, push, get, child } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        // ⚠️⚠️⚠️ REPLACE WITH YOUR FIREBASE CONFIG ⚠️⚠️⚠️
+        const firebaseConfig = {
+            apiKey: "AIzaSyCKZQ6M6AxwIW5DMfYidRjXqg-oROQbk58",
+            authDomain: "big-dhaka-4c637.firebaseapp.com",
+            databaseURL: "https://big-dhaka-4c637-default-rtdb.firebaseio.com",
+            projectId: "big-dhaka-4c637",
+            storageBucket: "big-dhaka-4c637.firebasestorage.app",
+            messagingSenderId: "117709777134",
+            appId: "1:117709777134:web:deff3613cefbf325b46bff"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        let wallet = 0;
+        let userId = null;
+        let mode = '30s';
+        let walletActionType = 'Deposit';
+        let selectedMethod = '';
+        
+        // Initial Data Structure (will be synced with time)
+        const gameData = {
+            '30s': { t: 0, d: 30, p: 0, history: [], bets: [] },
+            '1m': { t: 0, d: 60, p: 0, history: [], bets: [] },
+            '3m': { t: 0, d: 180, p: 0, history: [], bets: [] }
+        };
+
+        // --- AUTHENTICATION LOGIC ---
+
+        window.toggleAuth = (type) => {
+            document.getElementById('auth-msg').innerText = "";
+            if(type === 'signup') {
+                document.getElementById('login-form').classList.add('hidden');
+                document.getElementById('signup-form').classList.remove('hidden');
+            } else {
+                document.getElementById('signup-form').classList.add('hidden');
+                document.getElementById('login-form').classList.remove('hidden');
+            }
+        };
+
+        const getEmail = (mobile) => mobile + "@elite.game";
+
+        document.getElementById('btnLogin').addEventListener('click', () => {
+            const m = document.getElementById('login-mobile').value;
+            const p = document.getElementById('login-pass').value;
+            if(!m || !p) return showMsg("Fill all fields");
+            
+            showMsg("Logging in...", "text-blue-500");
+            signInWithEmailAndPassword(auth, getEmail(m), p)
+                .catch(e => showMsg(e.message));
+        });
+
+        document.getElementById('btnSignup').addEventListener('click', () => {
+            const m = document.getElementById('reg-mobile').value;
+            const p = document.getElementById('reg-pass').value;
+            const refCode = document.getElementById('reg-ref').value;
+            
+            if(!m || !p) return showMsg("Fill all fields");
+            if(p.length < 6) return showMsg("Password must be 6+ chars");
+
+            showMsg("Creating Account...", "text-blue-500");
+            createUserWithEmailAndPassword(auth, getEmail(m), p)
+                .then((userCred) => {
+                    const uid = userCred.user.uid;
+                    set(ref(db, 'users/' + uid), {
+                        balance: 0,
+                        phone: m,
+                        uid: uid,
+                        joined: new Date().toISOString(),
+                        refCode: refCode || 'NONE'
+                    });
+                })
+                .catch(e => showMsg(e.message));
+        });
+
+        function showMsg(msg, color="text-red-500") {
+            const el = document.getElementById('auth-msg');
+            el.className = `text-center text-xs font-bold mt-4 h-4 ${color}`;
+            el.innerText = msg;
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                userId = user.uid;
+                document.getElementById('auth-section').classList.add('hidden');
+                document.getElementById('main-app').classList.remove('hidden');
+                initApp(user.uid);
+            } else {
+                document.getElementById('main-app').classList.add('hidden');
+                document.getElementById('auth-section').classList.remove('hidden');
+                userId = null;
+            }
+        });
+
+        window.logoutApp = () => {
+            signOut(auth).then(() => {
+                location.reload();
+            });
+        };
+
+        // --- APP INITIALIZATION ---
+        function initApp(uid) {
+            document.getElementById('profile-uid').innerText = "UID: " + uid.slice(0, 8);
+            document.getElementById('wallet-uid').innerText = "UID: " + uid.slice(0, 8);
+            document.getElementById('my-invite-code').innerText = "R-" + uid.substring(0, 5).toUpperCase();
+
+            // Balance Listener
+            const userRef = ref(db, 'users/' + uid);
+            onValue(userRef, (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    wallet = parseFloat(data.balance || 0);
+                    updateBalanceDisplay();
+                }
+            });
+
+            // Transaction Listener
+            onValue(ref(db, 'transactions'), (snapshot) => {
+                const list = document.getElementById('transaction-list');
+                list.innerHTML = '';
+                snapshot.forEach(child => {
+                    const txn = child.val();
+                    if(txn.uid === uid) {
+                        let color = txn.status === 'approved' ? 'text-emerald-500' : (txn.status === 'rejected' ? 'text-red-500' : 'text-yellow-500');
+                        let icon = txn.type === 'Deposit' ? 'fa-arrow-down' : 'fa-arrow-up';
+                        let html = `
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 bg-slate-100 text-slate-600 rounded-lg flex items-center justify-center text-xs"><i class="fas ${icon}"></i></div>
+                                <div><p class="text-[11px] font-black text-slate-700">${txn.type} (${txn.method})</p><p class="text-[9px] ${color} font-bold uppercase">${txn.status}</p></div>
+                            </div>
+                            <span class="text-xs font-black ${color}">${txn.type == 'Withdraw' ? '-' : '+'}৳${txn.amount}</span>
+                        </div>`;
+                        list.innerHTML += html;
+                    }
+                });
+                if(list.innerHTML === '') list.innerHTML = '<p class="text-center text-xs text-slate-400">No transactions yet</p>';
+            });
+
+            runGame();
+        }
+
+        // --- AUTOMATIC TIME-SYNCED GAME LOGIC ---
+
+        function runGame() {
+            if(window.gameInterval) clearInterval(window.gameInterval);
+            
+            // Sync immediately then loop
+            syncGameLoop();
+            
+            window.gameInterval = setInterval(() => {
+                syncGameLoop();
+            }, 1000);
+        }
+
+        function syncGameLoop() {
+            const now = new Date();
+            const dateStr = now.getFullYear().toString() + 
+                            (now.getMonth()+1).toString().padStart(2, '0') + 
+                            now.getDate().toString().padStart(2, '0');
+            
+            // Total seconds passed today
+            const totalSecondsToday = (now.getHours() * 3600) + (now.getMinutes() * 60) + now.getSeconds();
+
+            // Update All Markets
+            updateMarketLogic('30s', 30, totalSecondsToday, dateStr);
+            updateMarketLogic('1m', 60, totalSecondsToday, dateStr);
+            updateMarketLogic('3m', 180, totalSecondsToday, dateStr);
+
+            updateUI();
+        }
+
+        function updateMarketLogic(key, duration, totalSec, dateStr) {
+            // Calculate Current Period Number based on time
+            const periodIndex = Math.floor(totalSec / duration);
+            // Unique Period ID: Date + Sequence (Fixed 4 digits)
+            const currentPeriodID = parseInt(dateStr + (10000 + periodIndex).toString().slice(-4));
+            
+            // Calculate Remaining Time
+            const remaining = duration - (totalSec % duration);
+
+            // DETECT PERIOD CHANGE
+            if (gameData[key].p !== 0 && currentPeriodID > gameData[key].p) {
+                // New period started! Process previous result
+                processResult(key);
+            }
+
+            // Sync Data
+            gameData[key].p = currentPeriodID;
+            gameData[key].t = remaining;
+        }
+
+        async function processResult(k) {
+            let n;
+            try {
+                // Check server side result or generate random
+                const snapshot = await get(child(ref(db), `admin/control/nextResult`));
+                if (snapshot.exists()) {
+                    n = parseInt(snapshot.val());
+                    set(ref(db, 'admin/control/nextResult'), null); 
+                } else {
+                    n = Math.floor(Math.random() * 10);
+                }
+            } catch (e) {
+                n = Math.floor(Math.random() * 10);
+            }
+
+            const g = gameData[k];
+            const size = n >= 5 ? 'Big' : 'Small';
+            const color = n==0||n==5 ? 'Violet' : (n%2==0 ? 'Red' : 'Green');
+            
+            let winSum = 0;
+            let didWin = false;
+
+            g.bets.forEach(b => {
+                if(b.type === color || b.type === size || b.type == n) {
+                    if(b.type == n) winSum += b.amt * 9;
+                    else winSum += b.amt * 1.96;
+                    didWin = true;
+                }
+            });
+
+            if(winSum > 0 && userId) {
+                update(ref(db, 'users/' + userId), {
+                    balance: wallet + winSum
+                });
+            }
+
+            // Show result only if user is on this market and betted
+            if (k === mode && g.bets.length > 0) {
+                triggerResult(didWin ? 'WIN' : 'LOSS', winSum);
+            }
+
+            // Update History
+            g.history.unshift({ p: g.p - 1, n, s: size, c: color }); // Result is for previous period
+            g.bets = [];
+        }
+
+        function updateBalanceDisplay() {
+            document.querySelectorAll('.balance-text').forEach(el => el.innerText = wallet.toFixed(2));
+        }
+
+        function updateUI() {
+            const g = gameData[mode];
+            
+            // Format time MM:SS
+            let m = Math.floor(g.t / 60); 
+            let s = g.t % 60;
+            document.getElementById('countdown').innerText = `${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
+            
+            // Show last 3 digits of Period ID
+            document.getElementById('period-num').innerText = g.p.toString().slice(-4);
+            
+            // Disable betting in last 5 seconds
+            if (g.t <= 5) document.getElementById('betBoard').classList.add('opacity-40', 'pointer-events-none');
+            else document.getElementById('betBoard').classList.remove('opacity-40', 'pointer-events-none');
+            
+            // Render History
+            const hBody = document.getElementById('history-rows'); hBody.innerHTML = "";
+            g.history.slice(0, 10).forEach(h => {
+                const clr = h.c === 'Green' ? 'text-green-500' : (h.c === 'Red' ? 'text-red-500' : 'text-purple-500');
+                hBody.innerHTML += `<tr><td class="p-4 font-mono text-gray-400">${h.p.toString().slice(-4)}</td><td class="p-4 font-black">${h.n}</td><td class="p-4 uppercase font-bold text-slate-500">${h.s}</td><td class="p-4 ${clr} font-black uppercase">${h.c}</td></tr>`;
+            });
+        }
+
+        // --- WINDOW FUNCTIONS ---
+
+        window.navigateTo = (pageId) => {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById('page-' + pageId).classList.add('active');
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('nav-' + pageId).classList.add('active');
+        };
+
+        window.showWalletModal = (type) => {
+            walletActionType = type;
+            document.getElementById('walletModalTitle').innerText = type;
+            document.getElementById('deposit-ui').classList.add('hidden');
+            document.getElementById('withdraw-ui').classList.add('hidden');
+            if(type === 'Deposit') document.getElementById('deposit-ui').classList.remove('hidden');
+            else document.getElementById('withdraw-ui').classList.remove('hidden');
+            document.getElementById('walletModal').classList.remove('hidden');
+        };
+
+        window.selectMethod = (method) => {
+            selectedMethod = method;
+            document.querySelectorAll('[id^="method-"]').forEach(el => el.classList.add('grayscale', 'border-slate-100'));
+            const sel = document.getElementById('method-' + method);
+            sel.classList.remove('grayscale');
+            sel.classList.add('border-blue-500', 'bg-blue-50');
+        };
+
+        window.copyNum = () => {
+            navigator.clipboard.writeText(document.getElementById('admin-num').innerText);
+            alert("Number copied!");
+        };
+
+        window.closeWalletModal = () => { document.getElementById('walletModal').classList.add('hidden'); };
+
+        window.handleWalletAction = () => {
+            let amt = parseFloat(document.getElementById('wallet-amt').value);
+            if (!amt || amt <= 0) return alert("Enter amount");
+            if (walletActionType === 'Withdraw' && amt > wallet) return alert("Low balance");
+            if (!selectedMethod && walletActionType === 'Deposit') return alert("Select Method");
+
+            const txnData = {
+                uid: userId,
+                type: walletActionType,
+                amount: amt,
+                method: selectedMethod || 'Bank',
+                details: walletActionType === 'Deposit' ? document.getElementById('wallet-tid').value : document.getElementById('withdraw-number').value,
+                status: 'pending',
+                time: new Date().toISOString()
+            };
+
+            if(walletActionType === 'Withdraw') {
+                update(ref(db, 'users/' + userId), { balance: wallet - amt });
+            }
+
+            push(ref(db, 'transactions'), txnData)
+                .then(() => {
+                    alert(walletActionType + " Request Submitted to Admin!");
+                    closeWalletModal();
+                    document.getElementById('wallet-amt').value = '';
+                });
+        };
+
+        window.switchMarket = (m) => {
+            mode = m;
+            document.querySelectorAll('.market-tab').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('tab-'+m).classList.add('active');
+            updateUI();
+        };
+
+        window.openBet = (type) => {
+            document.getElementById('target').innerText = type;
+            document.getElementById('betModal').setAttribute('data-choice', type);
+            document.getElementById('betModal').classList.remove('hidden');
+        };
+        window.closeBet = () => { document.getElementById('betModal').classList.add('hidden'); };
+        window.setMoney = (v) => { document.getElementById('bet-amt').value = v; };
+
+        window.confirmBet = () => {
+            let a = parseFloat(document.getElementById('bet-amt').value);
+            let t = document.getElementById('betModal').getAttribute('data-choice');
+            
+            if(a > wallet) return alert("Insufficient balance! Please Deposit.");
+            
+            update(ref(db, 'users/' + userId), { balance: wallet - a });
+            
+            gameData[mode].bets.push({ type: t, amt: a });
+            closeBet();
+        };
+
+        window.triggerResult = (status, amt) => {
+            const over = document.getElementById('resultOverlay');
+            document.getElementById('resStatus').innerText = status;
+            document.getElementById('resStatus').className = status === 'WIN' ? "text-5xl font-black italic text-green-500" : "text-5xl font-black italic text-red-500";
+            document.getElementById('resIcon').innerText = status === 'WIN' ? "🏆" : "❌";
+            document.getElementById('resAmount').innerText = status === 'WIN' ? "You won ৳" + amt.toFixed(2) : "Better luck next time!";
+            over.style.display = 'flex';
+        };
+        
+        window.closeResult = () => { document.getElementById('resultOverlay').style.display = 'none'; };
+
+        // Pre-fill history to look good (fake data before real data comes)
+        window.onload = () => {
+            // No action needed here, sync loop handles it
+        };
+
+    </script>
+</body>
+</html>
